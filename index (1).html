@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ÖRNEK FEST 2026 — Астана</title>
+<meta name="description" content="ӨРНЕК FEST 2026 — дәстүр мен цифрлық технологияны біріктіретін халықаралық арт-фестиваль, Астана." />
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html, body { margin:0; padding:0; }
+  #root { min-height:100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+
+const { useState, useMemo, useRef, useEffect } = React;
+
+/* =========================================================================
+   ӨРНЕК FEST — фестивальный сайт
+   Дизайн-токены:
+   Цвет:    --night:#1A1430  --terracotta:#D96C3E  --gold:#C9A84C
+            --teal:#3A8F8C   --sand:#F0E6D2        --ink:#241B3A
+   Сигнатура: орнамент "қошқар мүйіз" (бараний рог) как разделитель + навигационный якорь
+   ========================================================================= */
+
+const LANGS = ["KZ", "RU", "EN"];
+
+const DICT = {
+  KZ: {
+    nav: { about: "Фестиваль туралы", map: "Карта", sponsors: "Демеушілер", reg: "Тіркелу", vote: "Дауыс беру", faq: "Сұрақ-жауап", contacts: "Байланыс" },
+    heroTitle: "ӨРНЕК FEST 2026",
+    heroSubtitle: "Бабаның сызығы — болашақтың тілі",
+    heroDesc: "Ұлттық дәстүрлі өнер мен цифрлық технологияларды біріктіретін, екі күндік ашық аспан астындағы халықаралық арт-фестиваль.",
+    heroCta: "Бағдарламаны қарау",
+    heroCta2: "Тіркелу",
+    statDays: "күн", statMasters: "шебер", statZones: "аймақ", statGuests: "қонақ (жоспар)",
+    aboutTitle: "Фестиваль туралы",
+    aboutText: "«ӨРНЕК FEST» — қазақтың дәстүрлі қолөнерін (киіз басу, ою-өрнек сызу, зергерлік бұйымдар жасау, кесте тігу) заманауи цифрлық технологиялармен (AR-анимация, 3D-проекция, дрон-шоу, QR-мазмұн) синтездейтін, Астана қаласының ашық аспан астындағы ауқымды арт-фестивалі. Жоба «Дәстүр + Технология» бірегей тұжырымдамасына негізделген.",
+    goalsTitle: "Жобаның мақсаттары",
+    goals: [
+      { t: "Дәстүрді насихаттау", d: "Қазақтың дәстүрлі өнерін заманауи цифрлық форматта сақтау және дамыту" },
+      { t: "Ашық конкурстық алаң", d: "Отандық және халықаралық қолөнер шеберлері мен жас конкурсанттарға платформа ұсыну" },
+      { t: "Технология мен дәстүр", d: "AR, 3D-проекция және дрон-технологиялары арқылы ою-өрнекті интерактивті тәжірибеге айналдыру" },
+      { t: "Имидж нығайту", d: "Астана қаласының мәдени-туристік имиджін нығайту" },
+    ],
+    mapTitle: "Фестиваль картасы",
+    mapDesc: "Алаңның сызбалық картасы — әр аймақты түртіп, не күтетінін біліп алыңыз.",
+    programTitle: "Бағдарлама",
+    sponsorsTitle: "Демеушілер",
+    sponsorsDesc: "Фестивальді қолдаған мемлекеттік және корпоративтік әріптестерге алғыс білдіреміз",
+    regTitle: "Конкурсант болып тіркелу",
+    regDesc: "«Ұлыстар достығы» конкурсына қатысу үшін авторлық жұмысыңыз бен қысқаша аннотацияны жіберіп, формасын толтырыңыз",
+    regName: "Аты-жөні", regPhone: "Телефон", regCategory: "Санат", regCity: "Қала / ел",
+    regSubmit: "Тіркелу", regSuccess: "Рахмет! Өтінімі қабылданды. Қазылар алқасы нәтижесін email арқылы хабарлайды.",
+    voteTitle: "Көрермен дауысы",
+    voteDesc: "QR-код арқылы қосылып, «Үздік шебер» байқауында ұнаған конкурсантқа дауыс беріңіз",
+    voteScan: "QR-кодты сканерлеу үлгісі",
+    voteCount: "дауыс",
+    voteBtn: "Дауыс беру",
+    voted: "Дауысыңыз қабылданды!",
+    faqTitle: "Жиі қойылатын сұрақтар",
+    faq: [
+      { q: "Кіру билеті қанша тұрады?", a: "Кіру тегін, бірақ кейбір шеберхана сабақтары ақылы болуы мүмкін." },
+      { q: "Фестиваль қанша күнге созылады?", a: "Фестиваль 2 күнге жалғасады: 1-күні — тіркеу, шеберхана, жәрмеңке ашылуы және мини-концерт; 2-күні — конкурс қорытындысы, марапаттау, гала-концерт және дрон-шоу." },
+      { q: "Конкурсанттар қалай тіркеледі?", a: "Фестивальға дейін 1-2 ай бұрын авторлық жұмыс пен аннотацияны ресми email-ға жіберу керек, қазылар алқасы өтінімдерді сараптап тізім бекітеді." },
+      { q: "Шетелдік шеберлер қатыса алады ма?", a: "Иә, «Ұлыстар достығы» халықаралық конкурсына ТМД және түркітілдес елдерден шеберлер қатысады, ұйымдастырушылар қонақ үй мен трансфер ұсынады." },
+      { q: "Дауыс беруге кім қатыса алады?", a: "Кез келген қонақ QR-код арқылы қосылып, «Үздік шебер» байқауында дауыс бере алады." },
+    ],
+    contactsTitle: "Байланыс",
+    footerRights: "Барлық құқықтар қорғалған.",
+  },
+  RU: {
+    nav: { about: "О фестивале", map: "Карта", sponsors: "Спонсоры", reg: "Регистрация", vote: "Голосование", faq: "Вопросы", contacts: "Контакты" },
+    heroTitle: "ӨRNEK FEST 2026",
+    heroSubtitle: "Линия предков — язык будущего",
+    heroDesc: "Международный арт-фестиваль под открытым небом, объединяющий национальное традиционное искусство и цифровые технологии. Два дня в Астане.",
+    heroCta: "Смотреть программу",
+    heroCta2: "Зарегистрироваться",
+    statDays: "дня", statMasters: "мастеров", statZones: "зон", statGuests: "гостей (план)",
+    aboutTitle: "О фестивале",
+    aboutText: "«ӨРНЕК FEST» — масштабный арт-фестиваль под открытым небом в Астане, объединяющий традиционное казахское ремесло (валяние войлока, орнаментальное искусство, ювелирное дело, вышивку) с современными цифровыми технологиями: AR-анимацией, 3D-проекциями, шоу дронов и QR-контентом. Проект основан на концепции «Традиция + Технология».",
+    goalsTitle: "Цели проекта",
+    goals: [
+      { t: "Сохранение традиций", d: "Сохранять и развивать традиционное казахское искусство в современном цифровом формате" },
+      { t: "Открытая конкурсная площадка", d: "Дать платформу отечественным и международным мастерам и молодым конкурсантам" },
+      { t: "Технологии и традиция", d: "Превратить орнаментальное искусство в интерактивный опыт через AR, 3D-проекции и дронов" },
+      { t: "Имидж города", d: "Укрепить культурно-туристический имидж Астаны" },
+    ],
+    mapTitle: "Карта фестиваля",
+    mapDesc: "Схематичная карта площадки — нажмите на зону, чтобы узнать, что вас там ждёт.",
+    programTitle: "Программа",
+    sponsorsTitle: "Спонсоры",
+    sponsorsDesc: "Благодарим государственных и корпоративных партнёров, поддержавших фестиваль",
+    regTitle: "Регистрация конкурсантов",
+    regDesc: "Чтобы участвовать в конкурсе «Дружба народов», отправьте своё авторское произведение, краткую аннотацию и заполните форму",
+    regName: "Имя и фамилия", regPhone: "Телефон", regCategory: "Категория", regCity: "Город / страна",
+    regSubmit: "Зарегистрироваться", regSuccess: "Спасибо! Заявка принята. Жюри сообщит результат по email.",
+    voteTitle: "Голос зрителя",
+    voteDesc: "Подключитесь по QR-коду и проголосуйте за понравившегося конкурсанта в конкурсе «Лучший мастер»",
+    voteScan: "Демонстрация сканирования QR",
+    voteCount: "голосов",
+    voteBtn: "Голосовать",
+    voted: "Ваш голос принят!",
+    faqTitle: "Часто задаваемые вопросы",
+    faq: [
+      { q: "Сколько стоит входной билет?", a: "Вход свободный, но некоторые мастер-классы могут быть платными." },
+      { q: "Сколько длится фестиваль?", a: "Фестиваль идёт 2 дня: 1-й день — регистрация, мастер-классы, открытие ярмарки и мини-концерт; 2-й день — итоги конкурса, награждение, гала-концерт и шоу дронов." },
+      { q: "Как зарегистрироваться конкурсантом?", a: "За 1–2 месяца до фестиваля нужно отправить авторскую работу и аннотацию на официальный email; оргкомитет и жюри утвердят список участников." },
+      { q: "Могут ли участвовать зарубежные мастера?", a: "Да, в международном конкурсе «Дружба народов» участвуют мастера из стран СНГ и тюркоязычных стран; организаторы предоставляют гостиницу и трансфер." },
+      { q: "Кто может голосовать?", a: "Любой гость может подключиться по QR-коду и проголосовать в конкурсе «Лучший мастер»." },
+    ],
+    contactsTitle: "Контакты",
+    footerRights: "Все права защищены.",
+  },
+  EN: {
+    nav: { about: "About", map: "Map", sponsors: "Sponsors", reg: "Registration", vote: "Voting", faq: "FAQ", contacts: "Contacts" },
+    heroTitle: "ÖRNEK FEST 2026",
+    heroSubtitle: "The ancestors' line — the language of the future",
+    heroDesc: "An international open-air art festival blending national traditional art and digital technology. Two days in Astana.",
+    heroCta: "View programme",
+    heroCta2: "Register",
+    statDays: "days", statMasters: "masters", statZones: "zones", statGuests: "guests (planned)",
+    aboutTitle: "About the festival",
+    aboutText: "ÖRNEK FEST is a large-scale open-air art festival in Astana that blends traditional Kazakh craft — felting, ornamental art, jewellery-making, embroidery — with modern digital technology: AR animation, 3D projection, drone shows and QR content. The project is built on a 'Tradition + Technology' concept.",
+    goalsTitle: "Project goals",
+    goals: [
+      { t: "Preserving tradition", d: "Preserve and develop traditional Kazakh art in a modern digital format" },
+      { t: "An open competition stage", d: "Give a platform to domestic and international masters and young contestants" },
+      { t: "Technology meets tradition", d: "Turn ornamental art into an interactive experience through AR, 3D projection and drones" },
+      { t: "City image", d: "Strengthen Astana's cultural and tourism image" },
+    ],
+    mapTitle: "Festival map",
+    mapDesc: "A schematic map of the grounds — tap a zone to see what's waiting there.",
+    programTitle: "Programme",
+    sponsorsTitle: "Sponsors",
+    sponsorsDesc: "Thank you to the government and corporate partners supporting the festival",
+    regTitle: "Contestant registration",
+    regDesc: "To take part in the 'Friendship of Nations' competition, send your original work and a short summary, and fill in the form",
+    regName: "Full name", regPhone: "Phone", regCategory: "Category", regCity: "City / country",
+    regSubmit: "Register", regSuccess: "Thank you! Your entry has been received. The jury will notify you by email.",
+    voteTitle: "Audience vote",
+    voteDesc: "Connect via QR code and vote for your favourite contestant in the 'Best Master' competition",
+    voteScan: "QR scan demo",
+    voteCount: "votes",
+    voteBtn: "Vote",
+    voted: "Your vote has been counted!",
+    faqTitle: "Frequently asked questions",
+    faq: [
+      { q: "How much is the entry ticket?", a: "Entry is free, but some workshops may have a fee." },
+      { q: "How long does the festival run?", a: "The festival runs for 2 days: day 1 — registration, workshops, market opening and a mini-concert; day 2 — competition results, awards, gala concert and drone show." },
+      { q: "How do contestants register?", a: "1–2 months before the festival, send your original work and an annotation to the official email; the committee and jury review entries and confirm the final list." },
+      { q: "Can international masters take part?", a: "Yes, the 'Friendship of Nations' international competition includes masters from CIS and Turkic-speaking countries; organisers provide accommodation and transfer." },
+      { q: "Who can vote?", a: "Any guest can connect via the QR code and vote in the 'Best Master' competition." },
+    ],
+    contactsTitle: "Contacts",
+    footerRights: "All rights reserved.",
+  },
+};
+
+const ZONES = [
+  { id: "usta", x: 22, y: 24, color: "var(--gold)",
+    name: { KZ: "«ҰСТА» аймағы", RU: "Зона «УСТА»", EN: "'USTA' zone" },
+    desc: { KZ: "Тірі шеберхана: киіз басу, ою-өрнек сызу, зергерлік және кесте тігу бойынша интерактивті мастер-кластар.", RU: "Живая мастерская: интерактивные мастер-классы по валянию войлока, орнаментальному рисунку, ювелирному делу и вышивке.", EN: "A living workshop: interactive masterclasses in felting, ornamental drawing, jewellery-making and embroidery." } },
+  { id: "zharyk", x: 50, y: 36, color: "var(--terracotta)",
+    name: { KZ: "«ЖАРЫҚ» аймағы", RU: "Зона «ЖАРЫК»", EN: "'ZHARYK' zone" },
+    desc: { KZ: "3D-проекция шоу: ою-өрнек мотивтері ғимарат бетіне немесе арнайы экрандарға проекцияланады.", RU: "Шоу 3D-проекций: орнаментальные мотивы проецируются на здания и специальные экраны.", EN: "3D projection show: ornamental motifs are projected onto buildings and dedicated screens." } },
+  { id: "cifr", x: 78, y: 24, color: "var(--teal)",
+    name: { KZ: "«ЦИФР» аймағы", RU: "Зона «ЦИФР»", EN: "'CIFR' (Digital) zone" },
+    desc: { KZ: "AR-зона: QR-код арқылы смартфонда ою-өрнектің тарихы мен анимациясы ашылады.", RU: "AR-зона: через QR-код на смартфоне открывается история орнамента и его анимация.", EN: "AR zone: scanning a QR code on a phone reveals an ornament's history and animation." } },
+  { id: "dem", x: 18, y: 62, color: "var(--terracotta)",
+    name: { KZ: "«ДӘМ ӘЛЕМІ» аймағы", RU: "Фуд-корт «ДЭМ ЭЛЕМІ»", EN: "'World of Taste' food court" },
+    desc: { KZ: "Ұлттық тағамдар мен заманауи street food форматындағы гастрономиялық аула, отбасылық демалыс орны.", RU: "Гастрономический двор национальной кухни и современного street food, зона семейного отдыха.", EN: "A gastronomic yard of national cuisine and modern street food, a family rest area." } },
+  { id: "ulystar", x: 82, y: 62, color: "var(--gold)",
+    name: { KZ: "«Ұлыстар шатыры» аймағы", RU: "Зона «Шатёр народов»", EN: "'Nations' Yurt' zone" },
+    desc: { KZ: "Халықаралық «Ұлыстар достығы» конкурсына қатысатын шетелдік және өңірлік делегациялардың ұлттық киіз-үй павильондары мен мәдениет таныстыру бекеттері.", RU: "Национальные юрты-павильоны и культурные стенды делегаций международного конкурса «Дружба народов».", EN: "National yurt pavilions and culture stands of the delegations in the 'Friendship of Nations' international competition." } },
+  { id: "bazar", x: 50, y: 78, color: "var(--teal)",
+    name: { KZ: "«БАЗАР» аймағы", RU: "Зона «БАЗАР»", EN: "'BAZAR' (Market) zone" },
+    desc: { KZ: "Шеберлер мен конкурсанттардың жәрмеңкесі: дәстүрлі және заманауи қолөнер бұйымдарының ауқымды көрме-сату алаңы.", RU: "Ярмарка мастеров и конкурсантов: масштабная выставка-продажа традиционных и современных изделий ремесла.", EN: "A fair of masters and contestants: a large exhibition-and-sale area for traditional and modern crafts." } },
+];
+
+const PROGRAM = {
+  KZ: [
+    { day: "1-күн", items: [
+      { t: "09:00–11:00 — Қатысушыларды тіркеу, орналастыру, көрме аймағын дайындау", l: "Тіркеу нүктесі" },
+      { t: "11:00–12:00 — Салтанатты ашылу рәсімі. 3D-проекция шоу «Ою-өрнектің туылуы»", l: "Орталық сахна" },
+      { t: "12:00–14:30 — Шеберлік-кластар: киіз басу, ою-өрнек сызу, зергерлік, кесте тігу", l: "«ҰСТА» аймағы" },
+      { t: "12:30–19:00 — «БАЗАР» аймағының ашылуы: жәрмеңке старты", l: "«БАЗАР» аймағы" },
+      { t: "14:00–16:00 — AR-зона жұмысы: QR-ою-өрнек анимациясы, фотозоналар", l: "«ЦИФР» аймағы" },
+      { t: "15:00–17:00 — Ашық сахнадағы мини-концерт", l: "Орталық сахна" },
+      { t: "16:00–18:00 — Ойын-сауық: асық ату, аударыспақ, викториналар", l: "Ашық алаң" },
+      { t: "17:00–19:00 — «Үздік шебер» байқауының 1-ші кезеңі", l: "Көрме алаңы" },
+      { t: "19:00–20:00 — «Ұлыстар достығы» конкурсының ашылу кеші, киіз-үй павильондары", l: "«Ұлыстар шатыры» аймағы" },
+    ]},
+    { day: "2-күн", items: [
+      { t: "10:00–19:00 — «БАЗАР» аймағының жұмысы жалғасады", l: "«БАЗАР» аймағы" },
+      { t: "10:00–19:00 — «ДӘМ ӘЛЕМІ» фуд-корт жұмысы", l: "«Дәм әлемі» аймағы" },
+      { t: "11:00–13:30 — Ойын-сауық: ұлттық спорттық ойындар, командалық жарыстар", l: "Орталық сахна / Ашық алаң" },
+      { t: "12:00–15:00 — «Ұлыстар достығы» конкурсының негізгі кезеңі, дөңгелек үстел", l: "«Ұлыстар шатыры» аймағы" },
+      { t: "14:00–16:00 — AR-зона, жас дизайнерлердің перформанстары", l: "«ЦИФР» аймағы" },
+      { t: "16:00–17:30 — «Үздік шебер» және «Ұлыстар достығы» қорытындысы (жабық отырыс)", l: "Көрме алаңы" },
+      { t: "17:30–18:30 — Салтанатты марапаттау рәсімі", l: "Орталық сахна" },
+      { t: "18:30–20:30 — Гала-концерт: ұлттық аспаптар оркестрі, этно-ансамбльдер", l: "Орталық сахна" },
+      { t: "20:30–21:00 — «Жарқырайтын ою»: жабылуға арналған 3D-проекция шоу", l: "Орталық сахна" },
+      { t: "21:00–21:30 — ГРАНД-ФИНАЛ «Аспандағы мұра»: дрон-шоу", l: "Түнгі аспан / Сахна маңы" },
+    ]},
+  ],
+  RU: [
+    { day: "День 1", items: [
+      { t: "09:00–11:00 — Регистрация участников, размещение, подготовка выставочной зоны", l: "Точка регистрации" },
+      { t: "11:00–12:00 — Торжественная церемония открытия. 3D-проекция «Рождение орнамента»", l: "Главная сцена" },
+      { t: "12:00–14:30 — Мастер-классы: валяние войлока, орнаментальный рисунок, ювелирное дело, вышивка", l: "Зона «УСТА»" },
+      { t: "12:30–19:00 — Открытие зоны «БАЗАР»: старт ярмарки", l: "Зона «БАЗАР»" },
+      { t: "14:00–16:00 — Работа AR-зоны: QR-анимация орнамента, фотозоны", l: "Зона «ЦИФР»" },
+      { t: "15:00–17:00 — Мини-концерт на открытой сцене", l: "Главная сцена" },
+      { t: "16:00–18:00 — Развлекательная программа: асык ату, аударыспак, викторины", l: "Открытая площадка" },
+      { t: "17:00–19:00 — 1-й этап конкурса «Лучший мастер»", l: "Выставочная площадка" },
+      { t: "19:00–20:00 — Вечер открытия конкурса «Дружба народов», открытие юрт-павильонов", l: "Зона «Шатёр народов»" },
+    ]},
+    { day: "День 2", items: [
+      { t: "10:00–19:00 — Продолжение работы зоны «БАЗАР»", l: "Зона «БАЗАР»" },
+      { t: "10:00–19:00 — Работа фуд-корта «Дэм Элемі»", l: "Зона «Дэм Элемі»" },
+      { t: "11:00–13:30 — Развлекательная программа: нац. спортивные игры, командные состязания", l: "Главная сцена / Открытая площадка" },
+      { t: "12:00–15:00 — Основной этап конкурса «Дружба народов», круглый стол", l: "Зона «Шатёр народов»" },
+      { t: "14:00–16:00 — Работа AR-зоны, перформансы молодых дизайнеров", l: "Зона «ЦИФР»" },
+      { t: "16:00–17:30 — Подведение итогов «Лучший мастер» и «Дружба народов» (закрытое заседание)", l: "Выставочная площадка" },
+      { t: "17:30–18:30 — Торжественная церемония награждения", l: "Главная сцена" },
+      { t: "18:30–20:30 — Гала-концерт: оркестр нац. инструментов, этно-ансамбли", l: "Главная сцена" },
+      { t: "20:30–21:00 — «Жаркырайтын ою»: 3D-проекционное шоу закрытия", l: "Главная сцена" },
+      { t: "21:00–21:30 — ГРАНД-ФИНАЛ «Наследие в небе»: шоу дронов", l: "Ночное небо / у сцены" },
+    ]},
+  ],
+  EN: [
+    { day: "Day 1", items: [
+      { t: "09:00–11:00 — Participant registration, setup, exhibition area preparation", l: "Registration point" },
+      { t: "11:00–12:00 — Opening ceremony. 3D projection 'The Birth of the Ornament'", l: "Main stage" },
+      { t: "12:00–14:30 — Masterclasses: felting, ornamental drawing, jewellery, embroidery", l: "'USTA' zone" },
+      { t: "12:30–19:00 — Opening of the 'BAZAR' zone: market start", l: "'BAZAR' zone" },
+      { t: "14:00–16:00 — AR zone open: QR ornament animation, photo zones", l: "'CIFR' zone" },
+      { t: "15:00–17:00 — Mini-concert on the open stage", l: "Main stage" },
+      { t: "16:00–18:00 — Entertainment: traditional games, quizzes", l: "Open area" },
+      { t: "17:00–19:00 — Stage 1 of the 'Best Master' competition", l: "Exhibition area" },
+      { t: "19:00–20:00 — Opening evening of 'Friendship of Nations', yurt pavilions open", l: "'Nations' Yurt' zone" },
+    ]},
+    { day: "Day 2", items: [
+      { t: "10:00–19:00 — 'BAZAR' zone continues", l: "'BAZAR' zone" },
+      { t: "10:00–19:00 — 'World of Taste' food court open", l: "Food court zone" },
+      { t: "11:00–13:30 — Entertainment: national sports games, team contests", l: "Main stage / Open area" },
+      { t: "12:00–15:00 — Main stage of 'Friendship of Nations', round table", l: "'Nations' Yurt' zone" },
+      { t: "14:00–16:00 — AR zone, performances by young designers", l: "'CIFR' zone" },
+      { t: "16:00–17:30 — 'Best Master' and 'Friendship of Nations' results (closed jury session)", l: "Exhibition area" },
+      { t: "17:30–18:30 — Award ceremony", l: "Main stage" },
+      { t: "18:30–20:30 — Gala concert: national orchestra, ethno ensembles", l: "Main stage" },
+      { t: "20:30–21:00 — 'Glowing Ornament': closing 3D projection show", l: "Main stage" },
+      { t: "21:00–21:30 — GRAND FINALE 'Heritage in the Sky': drone show", l: "Night sky / near stage" },
+    ]},
+  ],
+};
+
+const SPONSORS = [
+  { name: "Самрұқ-Қазына", tier: "gold" },
+  { name: "Kazakhtelecom", tier: "gold" },
+  { name: "Halyk Bank", tier: "gold" },
+  { name: "Jusan Bank", tier: "teal" },
+  { name: "Air Astana", tier: "teal" },
+  { name: "Астана қ. Мәдениет басқармасы", tier: "sand" },
+  { name: "ҰБ Музей", tier: "sand" },
+  { name: "Қолөнер шеберлері одағы", tier: "sand" },
+];
+
+const CONTESTANTS_SEED = [
+  { id: 1, name: "Айгерим Сактаганова", category: "Кесте тігу / Embroidery", votes: 142 },
+  { id: 2, name: "Нурлан Бекетов", category: "Зергерлік бұйым / Jewellery", votes: 98 },
+  { id: 3, name: "Сара Жұмабекова", category: "Киіз басу / Felting", votes: 121 },
+  { id: 4, name: "Ержан Тоқтаров", category: "Ою-өрнек сызу / Ornamental art", votes: 76 },
+];
+
+/* ---------- Өрнек FEST logo motif — eight-rayed sun rosette ----------
+   Authentic to the brand: a circle with woven X-cross lines at the core,
+   surrounded by eight rays, each ray flanked by a pair of mirrored volute
+   scrolls (ою-өрнек), echoing the official ÖRNEK FEST emblem. */
+function OrnekSun({ size = 28, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+      <g fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        {/* eight rays with paired volutes, rotated around the center */}
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+          <g key={deg} transform={`rotate(${deg} 50 50)`}>
+            <path d="M50 30 L50 8" />
+            <path d="M50 30 C 40 30, 36 22, 42 17 C 46 14, 50 17, 48 21" />
+            <path d="M50 30 C 60 30, 64 22, 58 17 C 54 14, 50 17, 52 21" />
+          </g>
+        ))}
+        {/* outer + inner rim of the central disc */}
+        <circle cx="50" cy="50" r="22" />
+        <circle cx="50" cy="50" r="17" />
+        {/* woven cross lines inside the disc, as in the emblem */}
+        <path d="M38 38 L62 62 M62 38 L38 62" strokeWidth="1.8" />
+        <path d="M50 33 L50 67 M33 50 L67 50" strokeWidth="1.2" opacity="0.55" />
+      </g>
+    </svg>
+  );
+}
+
+/* ---------- Гүлді өрнек (flower rosette) — secondary accent motif ---------- */
+function GulMotif({ size = 24, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
+      <g fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round">
+        {[0, 60, 120, 180, 240, 300].map((deg) => (
+          <path
+            key={deg}
+            d="M20 20 C 20 12, 24 8, 20 2 C 16 8, 20 12, 20 20"
+            transform={`rotate(${deg} 20 20)`}
+          />
+        ))}
+        <circle cx="20" cy="20" r="2.6" fill={color} stroke="none" />
+      </g>
+    </svg>
+  );
+}
+
+/* ---------- Repeating border strip built from a single ray unit — signature divider ---------- */
+function RayUnit({ color = "currentColor" }) {
+  return (
+    <g stroke={color} fill="none" strokeWidth="2" strokeLinecap="round">
+      <path d="M24 44 L24 30" />
+      <path d="M24 30 C 14 30, 10 22, 16 17 C 20 14, 24 17, 22 21" />
+      <path d="M24 30 C 34 30, 38 22, 32 17 C 28 14, 24 17, 26 21" />
+      <circle cx="24" cy="30" r="1.6" fill={color} stroke="none" />
+    </g>
+  );
+}
+
+function HornDivider({ flip = false }) {
+  const units = Array.from({ length: 6 });
+  return (
+    <div className={`horn-divider ${flip ? "flip" : ""}`} aria-hidden="true">
+      <svg viewBox="0 0 288 48" preserveAspectRatio="xMidYMid meet" className="horn-divider-svg">
+        <line x1="0" y1="44" x2="288" y2="44" stroke="currentColor" strokeWidth="1" opacity="0.4" />
+        {units.map((_, i) => (
+          <g key={i} transform={`translate(${i * 48}, 0)`}>
+            <RayUnit color="currentColor" />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function Section({ id, eyebrow, title, children, tone = "dark", className = "" }) {
+  return (
+    <section id={id} className={`fest-section ${tone} ${className}`}>
+      <div className="section-inner">
+        {(eyebrow || title) && (
+          <header className="section-head">
+            {eyebrow && <span className="eyebrow"><OrnekSun size={18} /> {eyebrow}</span>}
+            {title && <h2>{title}</h2>}
+          </header>
+        )}
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function FestivalSite() {
+  const [lang, setLang] = useState("KZ");
+  const [page, setPage] = useState("home");
+  const t = DICT[lang];
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => { setMenuOpen(false); }, [page, lang]);
+
+  return (
+    <div className="fest-root">
+      <style>{CSS}</style>
+      <TopBar lang={lang} setLang={setLang} t={t} page={page} setPage={setPage} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      {page === "home" && <HomePage t={t} lang={lang} setPage={setPage} />}
+      {page === "reg" && <RegistrationPage t={t} lang={lang} setPage={setPage} />}
+      {page === "vote" && <VotePage t={t} lang={lang} setPage={setPage} />}
+      {page === "faq" && <FaqPage t={t} setPage={setPage} />}
+      <Footer t={t} lang={lang} />
+    </div>
+  );
+}
+
+function TopBar({ lang, setLang, t, page, setPage, menuOpen, setMenuOpen }) {
+  const items = [
+    { key: "about", id: "about", page: "home" },
+    { key: "map", id: "map", page: "home" },
+    { key: "sponsors", id: "sponsors", page: "home" },
+    { key: "reg", id: null, page: "reg" },
+    { key: "vote", id: null, page: "vote" },
+    { key: "faq", id: null, page: "faq" },
+  ];
+
+  const go = (it) => {
+    setPage(it.page);
+    if (it.page === "home" && it.id) {
+      setTimeout(() => {
+        document.getElementById(it.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <header className="topbar">
+      <div className="topbar-inner">
+        <button className="brand" onClick={() => { setPage("home"); window.scrollTo({top:0,behavior:"smooth"}); }}>
+          <OrnekSun size={26} color="var(--gold)" />
+          <span>ÖRNEK FEST</span>
+        </button>
+
+        <nav className="nav-desktop">
+          {items.map((it) => (
+            <button key={it.key} className={`nav-link ${page === it.page ? "active" : ""}`} onClick={() => go(it)}>
+              {t.nav[it.key]}
+            </button>
+          ))}
+        </nav>
+
+        <div className="lang-switch">
+          {LANGS.map((l) => (
+            <button key={l} className={`lang-pill ${lang === l ? "active" : ""}`} onClick={() => setLang(l)}>
+              {l}
+            </button>
+          ))}
+        </div>
+
+        <button className="burger" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
+          <span /><span /><span />
+        </button>
+      </div>
+
+      {menuOpen && (
+        <div className="nav-mobile">
+          {items.map((it) => (
+            <button key={it.key} className="nav-link" onClick={() => go(it)}>
+              {t.nav[it.key]}
+            </button>
+          ))}
+          <div className="lang-switch lang-switch-mobile">
+            {LANGS.map((l) => (
+              <button key={l} className={`lang-pill ${lang === l ? "active" : ""}`} onClick={() => setLang(l)}>
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function HomePage({ t, lang, setPage }) {
+  return (
+    <main>
+      <Hero t={t} setPage={setPage} />
+      <HornDivider />
+      <AboutBlock t={t} />
+      <HornDivider flip />
+      <GoalsBlock t={t} />
+      <StatsStrip t={t} />
+      <MapBlock t={t} lang={lang} />
+      <HornDivider />
+      <ProgramBlock t={t} lang={lang} />
+      <SponsorsBlock t={t} />
+      <CallToAction t={t} setPage={setPage} />
+      <ContactsBlock t={t} />
+    </main>
+  );
+}
+
+function HeroPattern() {
+  // Tiled kosqar-müyiz pattern, faint, as authentic ornamental texture
+  const cols = 7, rows = 4;
+  const cells = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      cells.push({ x: c * 60 + (r % 2 ? 30 : 0), y: r * 60, flip: (r + c) % 2 === 0 });
+    }
+  }
+  return (
+    <svg className="hero-pattern" viewBox={`0 0 ${cols * 60} ${rows * 60}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      {cells.map((cell, i) => (
+        <g key={i} transform={`translate(${cell.x},${cell.y}) scale(${cell.flip ? -1 : 1},1) translate(${cell.flip ? -48 : 0},6)`}>
+          <RayUnit color="currentColor" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function Hero({ t, setPage }) {
+  return (
+    <section className="hero">
+      <HeroPattern />
+      <div className="hero-inner">
+        <div className="hero-emblem"><OrnekSun size={84} color="var(--gold)" /></div>
+        <span className="hero-eyebrow"><GulMotif size={18} color="var(--gold)" /> 2026 · АСТАНА</span>
+        <h1 className="hero-title">{t.heroTitle}</h1>
+        <p className="hero-subtitle">{t.heroSubtitle}</p>
+        <p className="hero-desc">{t.heroDesc}</p>
+        <div className="hero-actions">
+          <button className="btn primary" onClick={() => { setPage("home"); setTimeout(()=>document.getElementById("program")?.scrollIntoView({behavior:"smooth"}),50); }}>
+            {t.heroCta}
+          </button>
+          <button className="btn ghost" onClick={() => setPage("reg")}>{t.heroCta2}</button>
+        </div>
+      </div>
+      <div className="hero-glow" />
+    </section>
+  );
+}
+
+function AboutBlock({ t }) {
+  return (
+    <Section id="about" eyebrow="Ornek" title={t.aboutTitle} tone="dark">
+      <p className="about-text">{t.aboutText}</p>
+    </Section>
+  );
+}
+
+function GoalsBlock({ t }) {
+  return (
+    <Section eyebrow="Mission" title={t.goalsTitle} tone="sand">
+      <div className="goals-grid">
+        {t.goals.map((g, i) => (
+          <div className="goal-card" key={i}>
+            <div className="goal-icon">
+              {i % 2 === 0
+                ? <OrnekSun size={30} color="var(--terracotta)" />
+                : <GulMotif size={26} color="var(--terracotta)" />}
+            </div>
+            <h3>{g.t}</h3>
+            <p>{g.d}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function StatsStrip({ t }) {
+  const stats = [
+    { n: "2", l: t.statDays },
+    { n: "100+", l: t.statMasters },
+    { n: "6", l: t.statZones },
+    { n: "15-20 000", l: t.statGuests },
+  ];
+  return (
+    <div className="stats-strip">
+      {stats.map((s, i) => (
+        <div className="stat" key={i}>
+          <div className="stat-num">{s.n}</div>
+          <div className="stat-label">{s.l}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MapBlock({ t, lang }) {
+  const [active, setActive] = useState(ZONES[0].id);
+  const zone = ZONES.find((z) => z.id === active);
+
+  return (
+    <Section id="map" eyebrow="Plan" title={t.mapTitle} tone="dark">
+      <p className="section-desc">{t.mapDesc}</p>
+      <div className="map-wrap">
+        <svg viewBox="0 0 100 100" className="map-svg" role="img" aria-label="Festival map">
+          <defs>
+            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M0 0 L10 0 L10 10" fill="none" stroke="rgba(168,114,46,0.12)" strokeWidth="0.3" />
+            </pattern>
+          </defs>
+          <rect x="2" y="2" width="96" height="96" rx="6" fill="url(#grid)" stroke="rgba(168,114,46,0.35)" strokeWidth="0.5" />
+          {ZONES.map((z) => (
+            <line key={`l-${z.id}`} x1="50" y1="50" x2={z.x} y2={z.y} stroke="rgba(242,226,196,0.18)" strokeWidth="0.6" />
+          ))}
+          <circle cx="50" cy="50" r="3" fill="var(--gold)" opacity="0.5" />
+          {ZONES.map((z) => (
+            <g key={z.id} transform={`translate(${z.x},${z.y})`} className="zone-node" onClick={() => setActive(z.id)} tabIndex={0}
+               onKeyDown={(e)=>{if(e.key==="Enter")setActive(z.id);}} role="button" aria-label={z.name[lang]}>
+              <circle r={active === z.id ? 6.5 : 5} fill={z.color} opacity={active === z.id ? 1 : 0.85}
+                      stroke="#1A1430" strokeWidth="0.8" className="zone-circle" />
+              <text y="9.5" textAnchor="middle" className="zone-label">{z.name[lang].split(" ")[0]}</text>
+            </g>
+          ))}
+        </svg>
+        <div className="zone-detail">
+          <div className="zone-detail-dot" style={{ background: zone.color }} />
+          <h3>{zone.name[lang]}</h3>
+          <p>{zone.desc[lang]}</p>
+          <div className="zone-pips">
+            {ZONES.map((z) => (
+              <button key={z.id} className={`pip ${active === z.id ? "active" : ""}`} style={{ "--pip-color": z.color }} onClick={() => setActive(z.id)}>
+                {z.name[lang]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function ProgramBlock({ t, lang }) {
+  const days = PROGRAM[lang];
+  const [activeDay, setActiveDay] = useState(0);
+  return (
+    <Section id="program" eyebrow="Schedule" title={t.programTitle} tone="sand">
+      <div className="day-tabs">
+        {days.map((d, i) => (
+          <button key={i} className={`day-tab ${activeDay === i ? "active" : ""}`} onClick={() => setActiveDay(i)}>{d.day}</button>
+        ))}
+      </div>
+      <ol className="program-list">
+        {days[activeDay].items.map((it, i) => (
+          <li key={i}>
+            <span className="program-time">{it.t}</span>
+            <span className="program-loc">{it.l}</span>
+          </li>
+        ))}
+      </ol>
+    </Section>
+  );
+}
+
+function SponsorsBlock({ t }) {
+  return (
+    <Section id="sponsors" eyebrow="Partners" title={t.sponsorsTitle} tone="dark">
+      <p className="section-desc">{t.sponsorsDesc}</p>
+      <div className="sponsor-grid">
+        {SPONSORS.map((s, i) => (
+          <div className={`sponsor-card tier-${s.tier}`} key={i}>
+            <span>{s.name}</span>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function CallToAction({ t, setPage }) {
+  return (
+    <div className="cta-band">
+      <OrnekSun size={34} color="var(--night)" />
+      <h3>{t.regTitle}</h3>
+      <button className="btn primary" onClick={() => setPage("reg")}>{t.regSubmit}</button>
+    </div>
+  );
+}
+
+function ContactsBlock({ t }) {
+  return (
+    <Section id="contacts" eyebrow="Contact" title={t.contactsTitle} tone="sand">
+      <div className="contacts-grid">
+        <div><strong>Email</strong><p>ornekfest@gmail.com</p></div>
+        <div><strong>Address / Қала</strong><p>Астана, 2026</p></div>
+      </div>
+    </Section>
+  );
+}
+
+function RegistrationPage({ t, lang, setPage }) {
+  const [form, setForm] = useState({ name: "", phone: "", category: "", city: "" });
+  const [submitted, setSubmitted] = useState(false);
+  const [list, setList] = useState([]);
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!form.name || !form.phone) return;
+    setList((prev) => [...prev, form]);
+    setSubmitted(true);
+    setForm({ name: "", phone: "", category: "", city: "" });
+  };
+
+  return (
+    <main className="page-shell">
+      <Section eyebrow="Apply" title={t.regTitle} tone="dark">
+        <p className="section-desc">{t.regDesc}</p>
+        <div className="reg-layout">
+          <form className="reg-form" onSubmit={submit}>
+            <label>
+              {t.regName}
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            </label>
+            <label>
+              {t.regPhone}
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required placeholder="+7 7__ ___ __ __" />
+            </label>
+            <label>
+              {t.regCategory}
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                <option value="">—</option>
+                <option>Кесте тігу / Embroidery</option>
+                <option>Зергерлік бұйым / Jewellery</option>
+                <option>Киіз басу / Felting</option>
+                <option>Ою-өрнек сызу / Ornamental art</option>
+              </select>
+            </label>
+            <label>
+              {t.regCity}
+              <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+            </label>
+            <button className="btn primary" type="submit">{t.regSubmit}</button>
+            {submitted && <p className="reg-success">{t.regSuccess}</p>}
+          </form>
+
+          <div className="reg-side">
+            <OrnekSun size={40} color="var(--gold)" />
+            <p className="reg-note">
+              {lang === "RU" && "Это демо-форма: данные сохраняются только во время этой сессии просмотра, для показа заказчику."}
+              {lang === "KZ" && "Бұл демо-форма: деректер тек осы көру сессиясында сақталады, тапсырыс берушіге көрсету үшін."}
+              {lang === "EN" && "This is a demo form: data is kept only for this preview session, to show the client."}
+            </p>
+            {list.length > 0 && (
+              <div className="reg-mini-list">
+                <strong>{list.length} {lang === "RU" ? "заявок добавлено" : lang === "KZ" ? "өтінім қосылды" : "entries added"}</strong>
+              </div>
+            )}
+          </div>
+        </div>
+      </Section>
+      <BackHome setPage={setPage} lang={lang} />
+    </main>
+  );
+}
+
+function VotePage({ t, lang, setPage }) {
+  const [contestants, setContestants] = useState(CONTESTANTS_SEED);
+  const [votedId, setVotedId] = useState(null);
+  const [connected, setConnected] = useState(false);
+
+  const totalVotes = useMemo(() => contestants.reduce((s, c) => s + c.votes, 0), [contestants]);
+
+  const castVote = (id) => {
+    if (votedId) return;
+    setContestants((prev) => prev.map((c) => (c.id === id ? { ...c, votes: c.votes + 1 } : c)));
+    setVotedId(id);
+  };
+
+  return (
+    <main className="page-shell">
+      <Section eyebrow="Live" title={t.voteTitle} tone="dark">
+        <p className="section-desc">{t.voteDesc}</p>
+
+        {!connected ? (
+          <div className="qr-gate">
+            <div className="qr-box">
+              <svg viewBox="0 0 100 100" className="qr-fake">
+                <rect width="100" height="100" fill="var(--sand)" />
+                {Array.from({ length: 64 }).map((_, i) => {
+                  const x = (i % 8) * 12 + 4, y = Math.floor(i / 8) * 12 + 4;
+                  return Math.random() > 0.45 ? <rect key={i} x={x} y={y} width="9" height="9" fill="var(--night)" /> : null;
+                })}
+              </svg>
+            </div>
+            <p>{t.voteScan}</p>
+            <button className="btn primary" onClick={() => setConnected(true)}>
+              {lang === "RU" ? "Сканировать (демо)" : lang === "KZ" ? "Сканерлеу (демо)" : "Scan (demo)"}
+            </button>
+          </div>
+        ) : (
+          <div className="vote-grid">
+            {contestants.map((c) => {
+              const pct = totalVotes ? Math.round((c.votes / totalVotes) * 100) : 0;
+              return (
+                <div className={`vote-card ${votedId === c.id ? "chosen" : ""}`} key={c.id}>
+                  <h4>{c.name}</h4>
+                  <span className="vote-category">{c.category}</span>
+                  <div className="vote-bar"><div className="vote-bar-fill" style={{ width: `${pct}%` }} /></div>
+                  <div className="vote-meta">
+                    <span>{c.votes} {t.voteCount}</span>
+                    <span>{pct}%</span>
+                  </div>
+                  <button className="btn small" disabled={!!votedId} onClick={() => castVote(c.id)}>
+                    {votedId === c.id ? "✓" : t.voteBtn}
+                  </button>
+                </div>
+              );
+            })}
+            {votedId && <p className="reg-success vote-thanks">{t.voted}</p>}
+          </div>
+        )}
+      </Section>
+      <BackHome setPage={setPage} lang={lang} />
+    </main>
+  );
+}
+
+function FaqPage({ t, setPage }) {
+  const [open, setOpen] = useState(0);
+  return (
+    <main className="page-shell">
+      <Section eyebrow="Help" title={t.faqTitle} tone="sand">
+        <div className="faq-list">
+          {t.faq.map((f, i) => (
+            <div className={`faq-item ${open === i ? "open" : ""}`} key={i}>
+              <button className="faq-q" onClick={() => setOpen(open === i ? -1 : i)}>
+                <span>{f.q}</span>
+                <span className="faq-toggle">{open === i ? "–" : "+"}</span>
+              </button>
+              {open === i && <p className="faq-a">{f.a}</p>}
+            </div>
+          ))}
+        </div>
+      </Section>
+      <BackHome setPage={setPage} lang="RU" />
+    </main>
+  );
+}
+
+function BackHome({ setPage, lang }) {
+  const label = lang === "RU" ? "← На главную" : lang === "KZ" ? "← Басты бетке" : "← Back home";
+  return (
+    <div className="back-home">
+      <button className="btn ghost" onClick={() => setPage("home")}>{label}</button>
+    </div>
+  );
+}
+
+function Footer({ t, lang }) {
+  return (
+    <footer className="fest-footer">
+      <div className="footer-inner">
+        <div className="footer-brand"><OrnekSun size={22} color="var(--gold)" /> ÖRNEK FEST</div>
+        <div className="footer-langs">{lang === "RU" ? "Тіл / Язык / Language: ҚАЗ · РУС · ENG" : null}</div>
+        <div className="footer-rights">© 2026 ÖRNEK FEST. {t.footerRights}</div>
+      </div>
+    </footer>
+  );
+}
+
+const CSS = `
+:root{
+  --sand:#F2E2C4;
+  --gold:#A8722E;
+  --night:#1B3A2E;
+  --terracotta:#7A2E1F;
+  --ink:#162E24;
+  --teal:#5C7A4E;
+}
+.fest-root{
+  font-family: 'PT Serif', 'Georgia', 'Times New Roman', serif;
+  background: var(--night);
+  color: var(--sand);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.fest-root *{ box-sizing:border-box; }
+h1,h2,h3,h4{
+  font-family: 'Georgia', 'PT Serif', 'Times New Roman', serif;
+  letter-spacing: 0.01em;
+  margin:0;
+}
+button{ font-family:'Verdana','Segoe UI',Arial,sans-serif; cursor:pointer; }
+.fest-root{ --body-sans: 'Verdana','Segoe UI',Arial,sans-serif; }
+.nav-link, .lang-pill, .eyebrow, .stat-label, .pip, .day-tab, .program-loc, .section-desc, .reg-form label, .reg-note, .vote-category, .footer-inner, .contacts-grid p{ font-family: var(--body-sans); }
+.btn{
+  border:none; border-radius:999px; padding:0.85rem 1.7rem; font-weight:700; font-size:0.95rem;
+  transition: transform .15s ease, box-shadow .15s ease; letter-spacing:0.02em;
+}
+.btn:hover{ transform: translateY(-2px); }
+.btn.primary{ background: var(--gold); color: var(--night); box-shadow:0 8px 24px -8px rgba(168,114,46,0.6);}
+.btn.ghost{ background:transparent; color: var(--sand); border:1.5px solid rgba(242,226,196,0.4); }
+.btn.ghost:hover{ border-color: var(--gold); color: var(--gold); }
+.btn.small{ padding:0.5rem 1rem; font-size:0.82rem; background:var(--teal); color:#fff; }
+.btn.small:disabled{ opacity:0.4; cursor:default; transform:none; }
+
+.topbar{ position:sticky; top:0; z-index:40; background:rgba(27,58,46,0.92); backdrop-filter: blur(10px); border-bottom:1px solid rgba(168,114,46,0.18); }
+.topbar-inner{ max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:1.5rem; padding:0.9rem 1.5rem; }
+.brand{ display:flex; align-items:center; gap:0.5rem; background:none; border:none; color:var(--sand); font-weight:800; font-size:1.05rem; letter-spacing:0.03em; }
+.nav-desktop{ display:flex; gap:0.3rem; flex:1; }
+.nav-link{ background:none; border:none; color:rgba(242,226,196,0.75); padding:0.5rem 0.8rem; border-radius:8px; font-size:0.92rem; font-weight:600; }
+.nav-link:hover{ color:var(--gold); }
+.nav-link.active{ color:var(--terracotta); }
+.lang-switch{ display:flex; gap:0.25rem; background:rgba(255,255,255,0.06); border-radius:999px; padding:0.25rem; }
+.lang-pill{ background:none; border:none; color:rgba(242,226,196,0.6); padding:0.35rem 0.7rem; border-radius:999px; font-size:0.78rem; font-weight:700; }
+.lang-pill.active{ background:var(--gold); color:var(--night); }
+.burger{ display:none; flex-direction:column; gap:4px; background:none; border:none; padding:0.4rem; }
+.burger span{ width:22px; height:2px; background:var(--sand); display:block; }
+.nav-mobile{ display:flex; flex-direction:column; padding:0.5rem 1.5rem 1rem; gap:0.2rem; border-top:1px solid rgba(168,114,46,0.15); }
+
+.hero{ position:relative; padding:5rem 1.5rem 6rem; text-align:center; overflow:hidden; }
+.hero-pattern{ position:absolute; inset:0; width:100%; height:100%; color: var(--gold); opacity:0.1; pointer-events:none; }
+.hero-glow{ position:absolute; left:50%; top:0; width:600px; height:600px; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(168,114,46,0.22), transparent 70%); pointer-events:none; }
+.hero-inner{ position:relative; max-width:760px; margin:0 auto; }
+.hero-emblem{ display:flex; justify-content:center; margin-bottom:1.2rem; filter: drop-shadow(0 4px 18px rgba(168,114,46,0.35)); }
+.hero-eyebrow{ display:inline-flex; align-items:center; gap:0.5rem; color:var(--gold); font-weight:700; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; }
+.hero-title{ font-size:clamp(2.4rem,7vw,4.2rem); margin:1rem 0 0.4rem; color:var(--sand); text-shadow:0 2px 30px rgba(122,46,31,0.3); }
+.hero-subtitle{ font-size:clamp(1.05rem,2.4vw,1.4rem); color:var(--terracotta); font-weight:700; margin:0 0 1rem; }
+.hero-desc{ color:rgba(242,226,196,0.78); font-size:1.05rem; line-height:1.6; max-width:560px; margin:0 auto 2rem; }
+.hero-actions{ display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+
+.horn-divider{ display:flex; justify-content:center; width:100%; overflow:hidden; color: var(--gold); opacity:0.6; background: var(--night); padding: 0.4rem 0; }
+.horn-divider.flip{ color: var(--teal); }
+.horn-divider-svg{ width:100%; max-width:1100px; height:36px; }
+
+.fest-section{ padding:4rem 1.5rem; }
+.fest-section.dark{ background: var(--night); }
+.fest-section.sand{ background: var(--sand); color: var(--ink); }
+.fest-section.sand .eyebrow{ color: var(--terracotta); }
+.fest-section.sand h2{ color: var(--ink); }
+.section-inner{ max-width:1100px; margin:0 auto; }
+.section-head{ margin-bottom:1.8rem; }
+.eyebrow{ display:inline-flex; align-items:center; gap:0.4rem; color:var(--gold); font-weight:700; font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:0.6rem; }
+.section-head h2{ font-size:clamp(1.6rem,4vw,2.3rem); }
+.section-desc{ opacity:0.8; max-width:620px; margin-bottom:1.5rem; line-height:1.6; }
+.about-text{ font-size:1.15rem; line-height:1.8; max-width:760px; opacity:0.9; }
+
+.goals-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.4rem; }
+.goal-card{ background:#fff; border-radius:16px; padding:1.6rem; box-shadow:0 10px 30px -15px rgba(22,46,36,0.25); }
+.goal-card h3{ font-size:1.05rem; margin:0.8rem 0 0.4rem; color:var(--ink); }
+.goal-card p{ font-size:0.92rem; opacity:0.75; line-height:1.5; margin:0; }
+
+.stats-strip{ display:flex; justify-content:center; gap:clamp(1.5rem,5vw,4rem); flex-wrap:wrap; padding:2.5rem 1.5rem; background:var(--ink); }
+.stat{ text-align:center; }
+.stat-num{ font-size:2.2rem; font-weight:800; color:var(--gold); }
+.stat-label{ font-size:0.82rem; opacity:0.7; text-transform:uppercase; letter-spacing:0.06em; }
+
+.map-wrap{ display:grid; grid-template-columns: 1.3fr 1fr; gap:2rem; align-items:start; }
+.map-svg{ width:100%; aspect-ratio:1; background: rgba(255,255,255,0.02); border-radius:20px; }
+.zone-node{ cursor:pointer; }
+.zone-circle{ transition: r .15s ease; }
+.zone-label{ font-size:3.6px; fill:var(--sand); font-weight:700; }
+.zone-detail{ background: rgba(255,255,255,0.04); border:1px solid rgba(168,114,46,0.25); border-radius:18px; padding:1.6rem; }
+.zone-detail-dot{ width:14px; height:14px; border-radius:50%; margin-bottom:0.8rem; }
+.zone-detail h3{ font-size:1.2rem; margin-bottom:0.5rem; }
+.zone-detail p{ opacity:0.8; line-height:1.5; font-size:0.95rem; margin-bottom:1.2rem; }
+.zone-pips{ display:flex; flex-wrap:wrap; gap:0.4rem; }
+.pip{ background:rgba(255,255,255,0.05); border:1px solid rgba(242,226,196,0.18); color:rgba(242,226,196,0.8); border-radius:999px; padding:0.35rem 0.75rem; font-size:0.78rem; }
+.pip.active{ background: var(--pip-color); color:var(--night); border-color:transparent; font-weight:700; }
+
+.day-tabs{ display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+.day-tab{ background:transparent; border:1.5px solid rgba(22,46,36,0.25); color:var(--ink); padding:0.5rem 1.2rem; border-radius:999px; font-weight:700; font-size:0.85rem; }
+.day-tab.active{ background:var(--ink); color:var(--sand); border-color:var(--ink); }
+.program-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.7rem; }
+.program-list li{ display:flex; flex-direction:column; gap:0.4rem; background:#fff; border-radius:12px; padding:1rem 1.3rem; box-shadow:0 6px 18px -12px rgba(22,46,36,0.25); }
+.program-time{ font-weight:700; color:var(--ink); line-height:1.4; }
+.program-loc{ color:var(--terracotta); font-weight:600; font-size:0.82rem; align-self:flex-start; background:rgba(122,46,31,0.1); padding:0.2rem 0.6rem; border-radius:999px; }
+
+.sponsor-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; }
+.sponsor-card{ border-radius:14px; padding:1.6rem 1rem; text-align:center; font-weight:700; border:1px solid rgba(242,226,196,0.15); background:rgba(255,255,255,0.03); }
+.sponsor-card.tier-gold{ border-color: var(--gold); color: var(--gold); }
+.sponsor-card.tier-teal{ border-color: var(--teal); color: var(--teal); }
+.sponsor-card.tier-sand{ color: var(--sand); }
+
+.cta-band{ background: linear-gradient(120deg, var(--terracotta), var(--gold)); color: var(--night); padding:3rem 1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem; text-align:center; }
+.cta-band h3{ font-size:1.5rem; max-width:480px; }
+
+.contacts-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1.5rem; }
+.contacts-grid strong{ display:block; color:var(--terracotta); font-size:0.8rem; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.3rem; }
+.contacts-grid p{ margin:0; font-weight:600; color:var(--ink); }
+
+.fest-footer{ background: var(--ink); padding:2rem 1.5rem; }
+.footer-inner{ max-width:1100px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem; font-size:0.85rem; opacity:0.75; }
+.footer-brand{ display:flex; align-items:center; gap:0.5rem; font-weight:800; opacity:1; }
+
+.page-shell{ min-height:60vh; }
+.back-home{ display:flex; justify-content:center; padding:2rem 1.5rem 4rem; background:var(--night); }
+
+.reg-layout{ display:grid; grid-template-columns:1.3fr 1fr; gap:2rem; }
+.reg-form{ display:flex; flex-direction:column; gap:1.1rem; background:rgba(255,255,255,0.04); border:1px solid rgba(168,114,46,0.2); border-radius:18px; padding:1.8rem; }
+.reg-form label{ display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem; font-weight:600; color:rgba(242,226,196,0.85); }
+.reg-form input, .reg-form select{ background:rgba(255,255,255,0.06); border:1px solid rgba(242,226,196,0.25); color:var(--sand); border-radius:10px; padding:0.7rem 0.9rem; font-size:0.95rem; }
+.reg-form input:focus, .reg-form select:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+.reg-success{ color:#7FD6A8; font-weight:700; }
+.reg-side{ background:rgba(168,114,46,0.08); border-radius:18px; padding:1.8rem; display:flex; flex-direction:column; gap:1rem; align-items:flex-start; }
+.reg-note{ opacity:0.75; font-size:0.9rem; line-height:1.6; }
+.reg-mini-list{ background:rgba(255,255,255,0.05); border-radius:10px; padding:0.7rem 1rem; font-size:0.85rem; }
+
+.qr-gate{ display:flex; flex-direction:column; align-items:center; gap:1.2rem; padding:2rem; }
+.qr-box{ width:180px; height:180px; border-radius:16px; overflow:hidden; border:3px solid var(--gold); }
+.qr-fake{ width:100%; height:100%; display:block; }
+.vote-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.2rem; }
+.vote-card{ background:rgba(255,255,255,0.04); border:1px solid rgba(168,114,46,0.2); border-radius:16px; padding:1.4rem; display:flex; flex-direction:column; gap:0.5rem; }
+.vote-card.chosen{ border-color: var(--terracotta); box-shadow:0 0 0 1px var(--terracotta) inset; }
+.vote-card h4{ font-size:1rem; }
+.vote-category{ font-size:0.78rem; color:var(--teal); font-weight:700; }
+.vote-bar{ height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden; margin-top:0.4rem; }
+.vote-bar-fill{ height:100%; background: linear-gradient(90deg, var(--terracotta), var(--gold)); transition:width .4s ease; }
+.vote-meta{ display:flex; justify-content:space-between; font-size:0.8rem; opacity:0.75; }
+.vote-thanks{ grid-column:1/-1; text-align:center; padding-top:0.5rem; }
+
+.faq-list{ display:flex; flex-direction:column; gap:0.7rem; max-width:760px; }
+.faq-item{ background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 6px 18px -12px rgba(22,46,36,0.2); }
+.faq-q{ width:100%; display:flex; justify-content:space-between; align-items:center; background:none; border:none; padding:1.1rem 1.4rem; font-weight:700; color:var(--ink); font-size:0.98rem; text-align:left; }
+.faq-toggle{ color:var(--terracotta); font-size:1.3rem; }
+.faq-a{ padding:0 1.4rem 1.2rem; opacity:0.78; line-height:1.55; margin:0; color:var(--ink); }
+
+@media (max-width: 880px){
+  .map-wrap, .reg-layout{ grid-template-columns:1fr; }
+}
+@media (max-width: 760px){
+  .nav-desktop{ display:none; }
+  .topbar-inner .lang-switch{ display:none; }
+  .burger{ display:flex; }
+  .topbar-inner{ padding:0.8rem 1.1rem; }
+  .lang-switch-mobile{ display:flex !important; justify-content:flex-start; margin-top:0.5rem; }
+}
+@media (prefers-reduced-motion: reduce){
+  .btn, .vote-bar-fill, .zone-circle{ transition:none !important; }
+}
+`;
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<FestivalSite />);
+
+</script>
+</body>
+</html>
